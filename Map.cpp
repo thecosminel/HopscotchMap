@@ -1,8 +1,15 @@
 #include "Map.h"
 #include "MapIterator.h"
 
-Map::Map() {
-	//TODO - Implementation
+Map::Map()
+{
+    this->h = 4;
+    this->m = find_next_prime(h);
+    arr = new Entry[m];
+    for (int i = 0; i < m; ++i)
+    {
+        arr[i] = Entry();
+    }
 }
 
 Map::~Map() {
@@ -37,6 +44,16 @@ bool Map::isEmpty() const{
 
 MapIterator Map::iterator() const {
 	return MapIterator(*this);
+}
+
+#include "iostream"
+using std::cout, std::endl;
+void Map::printHashTable() const
+{
+    for (int i = 0; i < m; ++i)
+    {
+        cout << "[" << i << "] = " << arr[i].key << endl;
+    }
 }
 
 

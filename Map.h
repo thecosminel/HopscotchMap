@@ -2,24 +2,39 @@
 #include <utility>
 //DO NOT INCLUDE MAPITERATOR
 
+#include "auxiliaryFunctions.h"
 
 //DO NOT CHANGE THIS PART
 typedef int TKey;
 typedef int TValue;
 typedef std::pair<TKey, TValue> TElem;
-#define NULL_TVALUE -111111
+#define NULL_TVALUE (-111111)
 #define NULL_TELEM pair<TKey, TValue>(-111111, -111111)
 class MapIterator;
 
+struct Entry{
+    bool occupied;
+    TKey key;
+    TValue value;
+    int hopInfo;
+
+    Entry() : occupied(false), key(NULL_TVALUE), value(NULL_TVALUE), hopInfo(0) {}
+
+};
 
 class Map {
 	//DO NOT CHANGE THIS PART
 	friend class MapIterator;
 
-	private:
-		//TODO - Representation
+private:
+    Entry* arr;
+    int m; // Capacity
+    int h;
 
-	public:
+    void resize();
+    void rehash();
+
+public:
 
 	// implicit constructor
 	Map();
@@ -46,6 +61,8 @@ class Map {
 
 	// destructor
 	~Map();
+
+    void printHashTable() const;
 
 };
 

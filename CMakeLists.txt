@@ -14,4 +14,4 @@ add_executable(Lab4_DSA
         MapIterator.cpp
         MapIterator.h
         ShortTest.cpp
-        ShortTest.h)
+        ShortTest.h auxiliaryFunctions.h auxiliaryFunctions.cpp)

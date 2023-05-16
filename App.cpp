@@ -13,7 +13,9 @@ int main() {
 //	testAllExtended();
 
 	cout << "That's all!" << endl;
-	system("pause");
+//	system("pause");
+    Map m;
+    m.printHashTable();
 	return 0;
 }
 
