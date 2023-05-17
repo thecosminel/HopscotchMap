@@ -22,7 +22,6 @@ void testAll() { //call each function to see if it is implemented
 	assert(m.remove(6) == NULL_TVALUE);
 	assert(m.size() == 4);
 
-
 	TElem e;
 	MapIterator id = m.iterator();
 	id.first();

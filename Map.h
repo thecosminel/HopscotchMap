@@ -8,32 +8,22 @@
 typedef int TKey;
 typedef int TValue;
 typedef std::pair<TKey, TValue> TElem;
+#define NULL_TKEY (-111111)
 #define NULL_TVALUE (-111111)
-#define NULL_TELEM pair<TKey, TValue>(-111111, -111111)
+#define NULL_TELEM std::pair<TKey, TValue>(-111111, -111111)
 class MapIterator;
-
-struct Entry{
-    bool occupied;
-    TKey key;
-    TValue value;
-    int hopInfo;
-
-    Entry() : occupied(false), key(NULL_TVALUE), value(NULL_TVALUE), hopInfo(0) {}
-
-};
 
 class Map {
 	//DO NOT CHANGE THIS PART
 	friend class MapIterator;
 
 private:
-    Entry* arr;
+    TElem * table;
     int m; // Capacity
-    int h;
+    int hop;
 
-    void resize();
-    void rehash();
-
+    void resizeAndRehash();
+    int hashFunction(int key) const;
 public:
 
 	// implicit constructor
@@ -42,13 +32,13 @@ public:
 	// adds a pair (key,value) to the map
 	//if the key already exists in the map, then the value associated to the key is replaced by the new value and the old value is returned
 	//if the key does not exist, a new pair is added and the value null is returned
-	TValue add(TKey c, TValue v);
+	TValue add(TKey k, TValue v);
 
 	//searches for the key and returns the value associated with the key if the map contains the key or null: NULL_TVALUE otherwise
-	TValue search(TKey c) const;
+	TValue search(TKey k) const;
 
 	//removes a key from the map and returns the value associated with the key if the key existed ot null: NULL_TVALUE otherwise
-	TValue remove(TKey c);
+	TValue remove(TKey k);
 
 	//returns the number of pairs (key,value) from the map
 	int size() const;
@@ -64,6 +54,7 @@ public:
 
     void printHashTable() const;
 
+    bool addWithoutRehash(TKey k, TValue v);
 };
 
 
