@@ -26,7 +26,7 @@ void testAll() { //call each function to see if it is implemented
 	MapIterator id = m.iterator();
 	id.first();
 	int s1 = 0, s2 = 0;
-	while (id.valid()) {
+	while (id.valid())  {
 		e = id.getCurrent();
 		s1 += e.first;
 		s2 += e.second;

@@ -13,7 +13,7 @@ MapIterator::MapIterator(const Map& d) : map(d)
 void MapIterator::first()
 {
     currentPosition	= 0;
-    while (map.table[currentPosition].first == NULL_TKEY && currentPosition < map.m)
+    while (map.table[currentPosition].element.first == NULL_TKEY && currentPosition < map.m)
         currentPosition++;
 }
 
@@ -23,7 +23,7 @@ void MapIterator::next()
     if (!valid())
         throw std::exception();
     currentPosition++;
-    while (map.table[currentPosition].first == NULL_TKEY && currentPosition < map.m)
+    while (map.table[currentPosition].element.first == NULL_TKEY && currentPosition < map.m)
     {
         currentPosition++;
     }
@@ -33,14 +33,14 @@ void MapIterator::next()
 TElem MapIterator::getCurrent()
 {
     if (valid())
-	    return map.table[currentPosition];
+	    return map.table[currentPosition].element;
     throw std::exception();
 }
 
 
 bool MapIterator::valid() const
 {
-    if (currentPosition < map.m && map.table[currentPosition].first != NULL_TKEY)
+    if (currentPosition < map.m && map.table[currentPosition].element.first != NULL_TKEY)
         return true;
 	return false;
 }

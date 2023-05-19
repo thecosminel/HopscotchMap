@@ -13,18 +13,34 @@ typedef std::pair<TKey, TValue> TElem;
 #define NULL_TELEM std::pair<TKey, TValue>(-111111, -111111)
 class MapIterator;
 
+struct Position{
+    TElem element;
+    int* bitMap{};
+    Position() : element(NULL_TELEM){}
+    explicit Position(int h){
+        element = NULL_TELEM;
+        bitMap = new int[h];
+        for (int i = 0; i < h; ++i)
+            bitMap[i] = 0;
+    }
+    ~Position() {
+        delete[] bitMap;
+    }
+};
+
 class Map {
 	//DO NOT CHANGE THIS PART
 	friend class MapIterator;
 
 private:
-    TElem * table;
+    Position* table;
     int m; // Capacity
+    int currentSize; // Size
     int hop;
 
     void resize();
-    TElem* rehash(int newM) const;
-    int hashFunction(int key) const;
+    TElem* rehash(int oldM, Position* oldTable) const;
+    int hashFunction(int key, int h) const;
 public:
 
 	// implicit constructor
@@ -53,7 +69,7 @@ public:
 	// destructor
 	~Map();
 
-    void printHashTable() const;
+    void printHashTableAndBitmap() const;
 
 };
 
