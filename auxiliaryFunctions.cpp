@@ -20,9 +20,8 @@ int find_next_prime(int lastPrime)
         return 2;
     if (lastPrime == 2)
         return 3;
-    if (lastPrime == 3)
-        lastPrime = 5;
     int nextPrime = lastPrime;
+    nextPrime += 2;
     if (nextPrime % 2 == 0)
         nextPrime++;
     while (true)

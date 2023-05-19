@@ -4,8 +4,8 @@
 
 Map::Map()
 {
-    this->hop = 5;
-    this->m = 13;
+    this->hop = 3;
+    this->m = 5;
     table = new TElem [m];
     for (int i = 0; i < m; ++i)
     {
@@ -19,47 +19,48 @@ Map::~Map() {
 
 TValue Map::add(TKey k, TValue v)
 {
-    TElem newElement;
-    newElement.first = k;
-    newElement.second = v;
-    // If an empty position is found
-    for (int i = 0; i < hop; ++i)
+    while (true)
     {
-        int positionInTable = hashFunction(k + i);
-        TElem currentTElem= table[positionInTable];
-        if (currentTElem.first == NULL_TKEY)
+        TElem newElement;
+        newElement.first = k;
+        newElement.second = v;
+        // If an empty position is found
+        for (int i = 0; i < hop; ++i)
         {
-            table[positionInTable] = newElement;
-            return NULL_TVALUE;
-        }
-        else if (currentTElem.first == k)
-        {
-            TValue oldValue = currentTElem.second;
-            table[positionInTable].second = v;
-            return oldValue;
-        }
-    }
-    // Try moving the other positions in hop range
-    for (int i = 0; i < hop; ++i)
-    {
-        int currentElemToMovePosition = hashFunction(k + i);
-        TElem currentElemToMove = table[currentElemToMovePosition];
-        for (int j = 0; j < hop; ++j)
-        {
-            int targetPosition = hashFunction(currentElemToMove.first + j);
-            TElem targetElement = table[targetPosition];
-            if (targetElement.first == NULL_TKEY)
+            int positionInTable = hashFunction(k + i);
+            TElem currentTElem= table[positionInTable];
+            if (currentTElem.first == NULL_TKEY)
             {
-                table[targetPosition] = currentElemToMove;
-                table[currentElemToMovePosition] = newElement;
+                table[positionInTable] = newElement;
                 return NULL_TVALUE;
             }
+            else if (currentTElem.first == k)
+            {
+                TValue oldValue = currentTElem.second;
+                table[positionInTable].second = v;
+                return oldValue;
+            }
         }
+        // Try moving the other positions in hop range
+        for (int i = 0; i < hop; ++i)
+        {
+            int currentElemToMovePosition = hashFunction(k + i);
+            TElem currentElemToMove = table[currentElemToMovePosition];
+            for (int j = 0; j < hop; ++j)
+            {
+                int targetPosition = hashFunction(currentElemToMove.first + j);
+                TElem targetElement = table[targetPosition];
+                if (targetElement.first == NULL_TKEY)
+                {
+                    table[targetPosition] = currentElemToMove;
+                    table[currentElemToMovePosition] = newElement;
+                    return NULL_TVALUE;
+                }
+            }
+        }
+        // If no position was found
+        resize();
     }
-    // If no position was found
-    resizeAndRehash();
-    // Try again after rehash
-    return add(k, v);
 }
 
 TValue Map::search(TKey k) const
@@ -115,37 +116,83 @@ MapIterator Map::iterator() const
 	return MapIterator(*this);
 }
 
-void Map::resizeAndRehash()
+void Map::resize()
 {
-    // Save old
-    int oldM = m;
-    TElem * oldTable = table;
+    int mCopy = m;
+    int newM;
+    TElem* newTable = nullptr;
     // Create new
-    this->m = find_next_prime(m);
-    table = new TElem [m];
-    for (int i = 0; i < m; ++i)
+    do
     {
-        table[i] = NULL_TELEM;
+        newM = find_next_prime(mCopy);
+        newTable = rehash(newM);
+    } while (newTable == nullptr);
+
+    delete[] table;
+    table = newTable;
+    this->m = newM;
+}
+
+TElem *Map::rehash(int newM) const
+{
+    auto newTable = new TElem[newM];
+    for (int i = 0; i < newM; ++i)
+    {
+        newTable[i] = NULL_TELEM;
     }
-    // Rehash
-    for (int i = 0; i < oldM; ++i)
+    TElem elementToRehash;
+    // Rehash elements one by one
+    for (int index = 0; index < m; ++index)
     {
-        TElem currentTElem = oldTable[i];
-        if (currentTElem.first != NULL_TKEY)
+        bool added;
+        elementToRehash = table[index];
+        TKey k = elementToRehash.first;
+        if (k != NULL_TKEY)
         {
-            if(!addWithoutRehash(currentTElem.first, currentTElem.second))
+            added = false;
+            for (int i = 0; i < hop; ++i)
             {
-                m = oldM;
-                delete[] table;
-                table = oldTable;
-                resizeAndRehash();
-                return;
+                int positionInTable = hashFunction(k + i);
+                TElem currentTElem= newTable[positionInTable];
+                if (currentTElem.first == NULL_TKEY)
+                {
+                    newTable[positionInTable] = elementToRehash;
+                    added = true;
+                    break;
+                }
+            }
+            if (!added)
+            {
+                // Try moving the other positions in hop range
+                for (int i = 0; i < hop; ++i)
+                {
+                    int currentElemToMovePosition = hashFunction(k + i);
+                    TElem currentElemToMove =newTable[currentElemToMovePosition];
+                    for (int j = 0; j < hop; ++j)
+                    {
+                        int targetPosition = hashFunction(currentElemToMove.first + j);
+                        TElem targetElement = newTable[targetPosition];
+                        if (targetElement.first == NULL_TKEY)
+                        {
+                            newTable[targetPosition] = currentElemToMove;
+                            newTable[currentElemToMovePosition] = elementToRehash;
+                            added = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            // Add failed, needs resize again
+            if (!added)
+            {
+                delete[] newTable;
+                return nullptr;
             }
         }
     }
-    // Finish
-    delete[] oldTable;
+    return newTable;
 }
+
 
 #include "iostream"
 using std::cout;
@@ -165,52 +212,3 @@ int Map::hashFunction(int key) const {
     else
         return (-key) % m;
 }
-
-bool Map::addWithoutRehash(TKey k, TValue v)
-{
-    TElem newElement;
-    newElement.first = k;
-    newElement.second = v;
-    // If an empty position is found
-    for (int i = 0; i < hop; ++i)
-    {
-        int positionInTable = hashFunction(k + i);
-        TElem currentTElem= table[positionInTable];
-        if (currentTElem.first == NULL_TKEY)
-        {
-            table[positionInTable] = newElement;
-            return NULL_TVALUE;
-            return true;
-        }
-        else if (currentTElem.first == k)
-        {
-            TValue oldValue = currentTElem.second;
-            table[positionInTable].second = v;
-            return oldValue;
-            return true;
-        }
-    }
-    // Try moving the other positions in hop range
-    for (int i = 0; i < hop; ++i)
-    {
-        int currentElemToMovePosition = hashFunction(k + i);
-        TElem currentElemToMove = table[currentElemToMovePosition];
-        for (int j = 0; j < hop; ++j)
-        {
-            int targetPosition = hashFunction(currentElemToMove.first + j);
-            TElem targetElement = table[targetPosition];
-            if (targetElement.first == NULL_TKEY)
-            {
-                table[targetPosition] = currentElemToMove;
-                table[currentElemToMovePosition] = newElement;
-                return NULL_TVALUE;
-                return true;
-            }
-        }
-    }
-    // If no position was found
-    return false;
-}
-
-
-

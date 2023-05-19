@@ -22,7 +22,8 @@ private:
     int m; // Capacity
     int hop;
 
-    void resizeAndRehash();
+    void resize();
+    TElem* rehash(int newM) const;
     int hashFunction(int key) const;
 public:
 
@@ -54,7 +55,6 @@ public:
 
     void printHashTable() const;
 
-    bool addWithoutRehash(TKey k, TValue v);
 };
 
 
