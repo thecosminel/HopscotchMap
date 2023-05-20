@@ -15,6 +15,7 @@ int main() {
 
 //    cout << "Test add" << endl;
 //    Map m;
+
 //    for (int i = 0; i < 10; i++) {
 //        assert(m.add(i, i) == NULL_TVALUE);
 //    }

@@ -7,10 +7,10 @@ Map::Map()
     this->hop = 3;
     this->m = 5;
     this->currentSize = 0;
-    table = new Position[m];
+    table = new Bucket[m];
     for (int i = 0; i < m; ++i)
     {
-        table[i] = Position(hop);
+        table[i] = Bucket(hop);
     }
 }
 
@@ -100,17 +100,25 @@ MapIterator Map::iterator() const
 
 void Map::resize()
 {
-    int oldM = m;
-    m = find_next_prime(2*m);
-    Position* oldTable = table;
-    rehash(oldM, oldTable);
+    int newM = 2*m;
+    Bucket* newTable;
+    // Increment and rehash until a compatible m is found
+    do {
+        newTable = rehash(newM);
+        newM = find_next_prime(newM);
+    } while (newTable != nullptr);
 
-    delete[] oldTable;
+    delete[] table;
 }
 
-TElem *Map::rehash(int oldM, Position* oldTable) const
+Bucket* Map::rehash(int newM) const
 {
-
+    auto* newTable = new Bucket[newM];
+    newTable = new Bucket[m];
+    for (int i = 0; i < m; ++i)
+    {
+        newTable[i] = Bucket(hop);
+    }
 }
 
 
