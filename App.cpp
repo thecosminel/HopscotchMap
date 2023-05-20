@@ -24,6 +24,15 @@ int main() {
 //    m.add(-10,-10);
 //    m.add(-9,-9);
 //    m.add(-8,-8);
+
+    Map m;
+    m.add(0,0);
+    m.add(1, 1);
+    m.add(2, 2);
+    m.add(3, 3);
+    m.printHashTableAndBitmap();
+    m.add(10, 10);
+    m.printHashTableAndBitmap();
 	return 0;
 }
 

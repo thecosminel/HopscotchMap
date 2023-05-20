@@ -39,8 +39,35 @@ TValue Map::add(TKey k, TValue v)
             return oldValue;
         }
     }
-    // Implement further
-    currentSize++;
+    // Try moving
+    int* bitMap = table[expectedPosition].bitMap;
+    for (int i = 0; i < hop; ++i)
+    {
+        if (bitMap[i] == 0)
+        {
+            int currentPosition = hashFunction(k,i);
+            TElem currentElem = table[currentPosition].element;
+            TKey currentKey = currentElem.first;
+            int expectedCurrentElemPosition = hashFunction(currentKey, 0);
+            for (int j = 0; j < hop; ++j)
+            {
+                int newPosition = hashFunction(currentKey, j);
+                if (table[newPosition].element == NULL_TELEM)
+                {
+                    table[newPosition].element = currentElem;
+                    table[expectedCurrentElemPosition].bitMap[j] = 0;
+                    table[currentPosition].bitMap[j] = 1;
+                    // Put new
+                    bitMap[i] = 1;
+                    table[currentPosition].element.first = k;
+                    table[currentPosition].element.first = v;
+                    currentSize++;
+                    return NULL_TVALUE;
+                }
+            }
+        }
+    }
+    // If moving failed, rehash is needed;
     return NULL_TVALUE;
 }
 
@@ -104,8 +131,8 @@ void Map::resize()
     Bucket* newTable;
     // Increment and rehash until a compatible m is found
     do {
-        newTable = rehash(newM);
         newM = find_next_prime(newM);
+        newTable = rehash(newM);
     } while (newTable != nullptr);
 
     delete[] table;
@@ -119,6 +146,7 @@ Bucket* Map::rehash(int newM) const
     {
         newTable[i] = Bucket(hop);
     }
+
 }
 
 
