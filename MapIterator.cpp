@@ -6,7 +6,9 @@ using namespace std;
 
 MapIterator::MapIterator(const Map& d) : map(d)
 {
-	currentPosition = 0;
+    currentPosition = 0;
+    while (map.table[currentPosition].element.first == NULL_TKEY && currentPosition < map.m)
+        currentPosition++;
 }
 
 

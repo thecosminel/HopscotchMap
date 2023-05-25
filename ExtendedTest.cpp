@@ -263,7 +263,8 @@ void testQuantity() {
 	assert(m.size() == 0);
 }
 
-void testAllExtended() {
+void testAllExtended()
+{
 	testCreate();
 	testAdd();
 	testRemove();
