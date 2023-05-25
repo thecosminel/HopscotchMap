@@ -143,34 +143,37 @@ void Map::resize()
 {
     int oldM = m;
     m = 2*m;
-    Bucket* newTable;
+    auto* newTable = new Bucket[1];
     // Increment and rehash until a compatible m is found
     do {
+        delete[] newTable;
         m = find_next_prime(m);
-        newTable = rehash(oldM);
-    } while (newTable != nullptr);
-
+        newTable = new Bucket[m];
+    } while (!rehash(newTable, oldM));
     delete[] table;
+    table = newTable;
 }
 
-Bucket* Map::rehash(int oldM) const
+bool Map::rehash(Bucket* newTable, int oldM)
 {
-    auto* newTable = new Bucket[m];
-    newTable = new Bucket[m];
     for (int i = 0; i < m; ++i)
     {
         newTable[i] = Bucket(hop);
     }
     for (int i = 0; i < oldM; ++i)
     {
-        Bucket currentBucket = table[i];
-        if (currentBucket.element != NULL_TELEM)
+        TElem currentElement = table[i].element;
+        if (currentElement != NULL_TELEM)
         {
+            bool result = addWithoutResize(newTable, currentElement.first, currentElement.second);
+            if (!result)
+            {
+                delete[] newTable;
+                return false;
+            }
         }
-
     }
-
-    return nullptr;
+    return true;
 }
 
 
@@ -212,7 +215,6 @@ bool Map::addWithoutResize(Bucket *newTable, TKey k, TValue v)
             newTable[position].element.first = k;
             newTable[position].element.second = v;
             newTable[expectedPosition].bitMap[i] = 1;
-            currentSize++;
             return true;
         }
         else if (newTable[position].element.first == k)
@@ -252,7 +254,6 @@ bool Map::addWithoutResize(Bucket *newTable, TKey k, TValue v)
                     bitMap[i] = 1;
                     newTable[currentPosition].element.first = k;
                     newTable[currentPosition].element.second = v;
-                    currentSize++;
                     return true;
                 }
             }

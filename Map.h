@@ -40,7 +40,7 @@ private:
 
     int hashFunction(int key, int h) const;
     void resize();
-    Bucket* rehash(int oldM) const;
+    bool rehash(Bucket* newTable, int oldM);
     bool addWithoutResize(Bucket* newTable, TKey k, TValue v);
 
 public:

@@ -30,9 +30,9 @@ int main() {
     m.add(2,0);
     m.add(7, 0);
     m.add(8, 0);
-    m.printHashTableAndBitmap();
-    m.add(12, 0);
-    m.printHashTableAndBitmap();
+//    m.printHashTableAndBitmap();
+    m.add(11, 0);
+//    m.printHashTableAndBitmap();
 	return 0;
 }
 
