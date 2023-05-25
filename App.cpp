@@ -8,7 +8,7 @@ using namespace std;
 #include "cassert"
 
 int main() {
-	testAll();
+//	testAll();
 //	testAllExtended();
 //	cout << "That's all!" << endl;
 //	system("pause");
@@ -26,12 +26,12 @@ int main() {
 //    m.add(-8,-8);
 
     Map m;
-    m.add(0,0);
-    m.add(1, 1);
-    m.add(2, 2);
-    m.add(3, 3);
+    m.add(1, 0);
+    m.add(2,0);
+    m.add(7, 0);
+    m.add(8, 0);
     m.printHashTableAndBitmap();
-    m.add(10, 10);
+    m.add(12, 0);
     m.printHashTableAndBitmap();
 	return 0;
 }
