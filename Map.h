@@ -38,9 +38,11 @@ private:
     int currentSize; // Size
     int hop;
 
-    void resize();
-    Bucket* rehash(int newM) const;
     int hashFunction(int key, int h) const;
+    void resize();
+    Bucket* rehash(int oldM) const;
+    bool addWithoutResize(Bucket* newTable, TKey k, TValue v);
+
 public:
 
 	// implicit constructor
