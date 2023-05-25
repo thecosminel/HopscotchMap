@@ -15,17 +15,9 @@ class MapIterator;
 
 struct Bucket{
     TElem element;
-    int* bitMap{};
-    Bucket() : element(NULL_TELEM){}
-    explicit Bucket(int h){
-        element = NULL_TELEM;
-        bitMap = new int[h];
-        for (int i = 0; i < h; ++i)
-            bitMap[i] = 0;
-    }
-    ~Bucket() {
-        delete[] bitMap;
-    }
+    unsigned short int bitMap;
+
+    Bucket(): element(NULL_TELEM), bitMap(0){};
 };
 
 class Map {
@@ -36,12 +28,14 @@ private:
     Bucket* table;
     int m; // Capacity
     int currentSize; // Size
-    int hop;
+    int hopRange;
 
     int hashFunction(int key, int h) const;
+
     void resize();
-    bool rehash(Bucket* newTable, int oldM);
-    bool addWithoutResize(Bucket* newTable, TKey k, TValue v);
+
+    bool rehash(Bucket* oldTable, int oldM);
+    bool addWithoutResize(TKey k, TValue v);
 
 public:
 

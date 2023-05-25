@@ -2,33 +2,37 @@
 #include "MapIterator.h"
 
 
+//Remove at the end
+#include "iostream"
+using std::cout;
+using std::endl;
+// !!!
+
+
 Map::Map()
 {
-    this->hop = 3;
     this->m = 5;
+    this->hopRange = 3;
     this->currentSize = 0;
     table = new Bucket[m];
-    for (int i = 0; i < m; ++i)
-    {
-        table[i] = Bucket(hop);
-    }
 }
 
-Map::~Map() {
+Map::~Map()
+{
 	delete[] table;
 }
 
 TValue Map::add(TKey k, TValue v)
 {
-    int expectedPosition = hashFunction(k, 0);
-    for (int i = 0; i < hop; ++i)
+    int hashPosition = hashFunction(k, 0);
+    for (int hop = 0; hop < hopRange; ++hop)
     {
-        int position = hashFunction(k, i);
+        int position = hashFunction(k, hop);
         if (table[position].element == NULL_TELEM)
         {
             table[position].element.first = k;
             table[position].element.second = v;
-            table[expectedPosition].bitMap[i] = 1;
+            table[hashPosition].bitMap |= (1 << hop);
             currentSize++;
             return NULL_TVALUE;
         }
@@ -42,16 +46,17 @@ TValue Map::add(TKey k, TValue v)
     // Try moving
     while (true)
     {
-        int* bitMap = table[expectedPosition].bitMap;
-        for (int i = 0; i < hop; ++i)
+        hashPosition = hashFunction(k, 0);
+        short unsigned int bitMap = table[hashPosition].bitMap;
+        for (int hop = 0; hop < hopRange; ++hop)
         {
-            if (bitMap[i] == 0)
+            if ((bitMap & (1 << hop)) == 0)
             {
-                int currentPosition = hashFunction(k,i);
+                int currentPosition = hashFunction(k, hop);
                 TElem currentElem = table[currentPosition].element;
                 TKey currentKey = currentElem.first;
                 int expectedCurrentElemPosition = hashFunction(currentKey, 0);
-                for (int j = 0; j < hop; ++j)
+                for (int j = 0; j < hopRange; ++j)
                 {
                     int newPosition = hashFunction(currentKey, j);
                     if (table[newPosition].element == NULL_TELEM)
@@ -59,7 +64,7 @@ TValue Map::add(TKey k, TValue v)
                         table[newPosition].element = currentElem;
                         // Find elem to move position in bitmap
                         int elemToMovePostionInBitMap = NULL_TKEY;
-                        for (int l = 0; l < hop; ++l)
+                        for (int l = 0; l < hopRange; ++l)
                         {
                             if (hashFunction(currentKey, l) == currentPosition)
                             {
@@ -67,10 +72,10 @@ TValue Map::add(TKey k, TValue v)
                                 break;
                             }
                         }
-                        table[expectedCurrentElemPosition].bitMap[elemToMovePostionInBitMap] = 0;
-                        table[expectedCurrentElemPosition].bitMap[j] = 1;
+                        table[expectedCurrentElemPosition].bitMap &= ~(1 << elemToMovePostionInBitMap); // Set bit to 0
+                        table[expectedCurrentElemPosition].bitMap |= (1 << j); // Set bit to 1
                         // Put new
-                        bitMap[i] = 1;
+                        table[hashPosition].bitMap |= (1 << hop);
                         table[currentPosition].element.first = k;
                         table[currentPosition].element.second = v;
                         currentSize++;
@@ -82,17 +87,19 @@ TValue Map::add(TKey k, TValue v)
         // If moving failed, rehash is needed;
         resize();
     }
-    return NULL_TVALUE;
 }
 
 TValue Map::search(TKey k) const
 {
     int expectedPosition = hashFunction(k, 0);
-    for (int i = 0; i < hop; ++i)
+    int currentBitMap = table[expectedPosition].bitMap;
+    for (int hop = 0; hop < hopRange; ++hop)
     {
-        if (table[expectedPosition].bitMap[i] == 1)
+
+        unsigned short int thing = (1 & (currentBitMap >> hop));
+        if ((1 & (currentBitMap >> hop)) == 1)
         {
-            int position = hashFunction(k, i);
+            int position = hashFunction(k, hop);
             if (k == table[position].element.first)
                 return table[position].element.second;
         }
@@ -103,16 +110,17 @@ TValue Map::search(TKey k) const
 TValue Map::remove(TKey k)
 {
     int expectedPosition = hashFunction(k, 0);
-    for (int i = 0; i < hop; ++i)
+    int currentBitMap = table[expectedPosition].bitMap;
+    for (int hop = 0; hop < hopRange; ++hop)
     {
-        if (table[expectedPosition].bitMap[i] == 1)
+        if ((1 & (currentBitMap >> hop)) == 1)
         {
-            int position = hashFunction(k, i);
+            int position = hashFunction(k, hop);
             if (k == table[position].element.first)
             {
                 TValue removedValue = table[position].element.second;
                 table[position].element = NULL_TELEM;
-                table[expectedPosition].bitMap[i] = 0;
+                table[expectedPosition].bitMap &= ~(1 << hop);
                 currentSize--;
                 return removedValue;
             }
@@ -143,32 +151,30 @@ void Map::resize()
 {
     int oldM = m;
     m = 2*m;
-    auto* newTable = new Bucket[1];
+    auto* oldTable = table;
+    table = new Bucket[1];
     // Increment and rehash until a compatible m is found
+    bool rehashResult;
     do {
-        delete[] newTable;
+        delete[] table;
         m = find_next_prime(m);
-        newTable = new Bucket[m];
-    } while (!rehash(newTable, oldM));
-    delete[] table;
-    table = newTable;
+        table = new Bucket[m];
+        rehashResult = rehash(oldTable, oldM);
+    } while (!rehashResult);
+
+    delete[] oldTable;
 }
 
-bool Map::rehash(Bucket* newTable, int oldM)
+bool Map::rehash(Bucket* oldTable, int oldM)
 {
-    for (int i = 0; i < m; ++i)
-    {
-        newTable[i] = Bucket(hop);
-    }
     for (int i = 0; i < oldM; ++i)
     {
-        TElem currentElement = table[i].element;
+        TElem currentElement = oldTable[i].element;
         if (currentElement != NULL_TELEM)
         {
-            bool result = addWithoutResize(newTable, currentElement.first, currentElement.second);
+            bool result = addWithoutResize(currentElement.first, currentElement.second);
             if (!result)
             {
-                delete[] newTable;
                 return false;
             }
         }
@@ -177,18 +183,16 @@ bool Map::rehash(Bucket* newTable, int oldM)
 }
 
 
-#include "iostream"
-using std::cout;
-using std::endl;
+
 void Map::printHashTableAndBitmap() const
 {
     for (int i = 0; i < m; ++i)
     {
         Bucket currentBucket = table[i];
         cout << "[" << i << "] =  ";
-        for(int j = 0; j < hop; j++)
+        for(int j = 0; j < hopRange; j++)
         {
-            cout << currentBucket.bitMap[j];
+            cout << ((currentBucket.bitMap >>  j) & 1);
         }
         cout << " | ";
         cout << " k: " << currentBucket.element.first << "  v: " << currentBucket.element.second << endl;
@@ -204,43 +208,45 @@ int Map::hashFunction(int key, int h) const
         return (m + (key % m) + h) % m;
 }
 
-bool Map::addWithoutResize(Bucket *newTable, TKey k, TValue v)
+bool Map::addWithoutResize(TKey k, TValue v)
 {
-    int expectedPosition = hashFunction(k, 0);
-    for (int i = 0; i < hop; ++i)
+    int hashPosition = hashFunction(k, 0);
+    for (int hop = 0; hop < hopRange; ++hop)
     {
-        int position = hashFunction(k, i);
-        if (newTable[position].element == NULL_TELEM)
+        int position = hashFunction(k, hop);
+        if (table[position].element == NULL_TELEM)
         {
-            newTable[position].element.first = k;
-            newTable[position].element.second = v;
-            newTable[expectedPosition].bitMap[i] = 1;
+            table[position].element.first = k;
+            table[position].element.second = v;
+            table[hashPosition].bitMap |= (1 << hop);
             return true;
         }
-        else if (newTable[position].element.first == k)
+        else if (table[position].element.first == k)
         {
+            table[position].element.second = v;
             return false;
         }
     }
+
     // Try moving
-    int* bitMap = newTable[expectedPosition].bitMap;
-    for (int i = 0; i < hop; ++i)
+    short unsigned int bitMap = table[hashPosition].bitMap;
+    for (int hop = 0; hop < hopRange; ++hop)
     {
-        if (bitMap[i] == 0)
+        if ((bitMap & (1 << hop)) == 0)
         {
-            int currentPosition = hashFunction(k,i);
-            TElem currentElem = newTable[currentPosition].element;
+            int currentPosition = hashFunction(k, hop);
+            TElem currentElem = table[currentPosition].element;
             TKey currentKey = currentElem.first;
             int expectedCurrentElemPosition = hashFunction(currentKey, 0);
-            for (int j = 0; j < hop; ++j)
+            for (int j = 0; j < hopRange; ++j)
             {
                 int newPosition = hashFunction(currentKey, j);
-                if (newTable[newPosition].element == NULL_TELEM)
+                if (table[newPosition].element == NULL_TELEM)
                 {
-                    newTable[newPosition].element = currentElem;
+                    table[newPosition].element = currentElem;
                     // Find elem to move position in bitmap
                     int elemToMovePostionInBitMap = NULL_TKEY;
-                    for (int l = 0; l < hop; ++l)
+                    for (int l = 0; l < hopRange; ++l)
                     {
                         if (hashFunction(currentKey, l) == currentPosition)
                         {
@@ -248,19 +254,18 @@ bool Map::addWithoutResize(Bucket *newTable, TKey k, TValue v)
                             break;
                         }
                     }
-                    newTable[expectedCurrentElemPosition].bitMap[elemToMovePostionInBitMap] = 0;
-                    newTable[expectedCurrentElemPosition].bitMap[j] = 1;
+                    table[expectedCurrentElemPosition].bitMap &= ~(1 << elemToMovePostionInBitMap);
+                    table[expectedCurrentElemPosition].bitMap |= (1 << j);
                     // Put new
-                    bitMap[i] = 1;
-                    newTable[currentPosition].element.first = k;
-                    newTable[currentPosition].element.second = v;
+                    table[hashPosition].bitMap |= (1 << hop);
+                    table[currentPosition].element.first = k;
+                    table[currentPosition].element.second = v;
                     return true;
                 }
             }
         }
     }
-    // If moving failed, rehash failed
-    // Resize again
     return false;
 }
+
 
