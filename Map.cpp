@@ -287,4 +287,31 @@ bool Map::addWithoutResize(TKey k, TValue v)
     return false;
 }
 
+Map::Map(const Map &map)
+{
+    this->m = map.m;
+    this->hopRange = map.hopRange;
+    this->currentSize = map.m;
+    this->table = new Bucket[m];
+    for (int i = 0; i < m; ++i)
+    {
+        this->table[m] = map.table[m];
+    }
+}
+
+Map Map::operator=(const Map &map){
+    if (this == &map)
+        return *this;
+    // Copy
+    this->m = map.m;
+    this->hopRange = map.hopRange;
+    this->currentSize = map.m;
+    this->table = new Bucket[m];
+    for (int i = 0; i < m; ++i)
+    {
+        this->table[m] = map.table[m];
+    }
+    return *this;
+}
+
 

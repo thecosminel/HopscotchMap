@@ -65,7 +65,9 @@ public:
 	// destructor
 	~Map();
 
+    Map(const Map &map);
 
+    Map operator=(const Map &map);
 };
 
 
