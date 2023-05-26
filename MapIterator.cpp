@@ -3,7 +3,10 @@
 #include <exception>
 using namespace std;
 
-
+// Best case Θ(1)
+// Worst case Θ(m)
+// Average case Θ(m)
+// General case O(m)
 MapIterator::MapIterator(const Map& d) : map(d)
 {
     currentPosition = 0;
@@ -11,7 +14,10 @@ MapIterator::MapIterator(const Map& d) : map(d)
         currentPosition++;
 }
 
-
+// Best case Θ(1)
+// Worst case Θ(m)
+// Average case Θ(m)
+// General case O(m)
 void MapIterator::first()
 {
     currentPosition	= 0;
@@ -19,7 +25,10 @@ void MapIterator::first()
         currentPosition++;
 }
 
-
+// Best case Θ(1)
+// Worst case Θ(m)
+// Average case Θ(m)
+// General case O(m)
 void MapIterator::next()
 {
     if (!valid())
@@ -31,7 +40,10 @@ void MapIterator::next()
     }
 }
 
-
+// Best case Θ(1)
+// Worst case Θ(1)
+// Average case Θ(1)
+// General case Θ(1)
 TElem MapIterator::getCurrent()
 {
     if (valid())
@@ -39,7 +51,10 @@ TElem MapIterator::getCurrent()
     throw std::exception();
 }
 
-
+// Best case Θ(1)
+// Worst case Θ(1)
+// Average case Θ(1)
+// General case Θ(1)
 bool MapIterator::valid() const
 {
     if (currentPosition < map.m && map.table[currentPosition].element.first != NULL_TKEY)
