@@ -32,7 +32,7 @@ private:
 
     int hashFunction(int key, int h) const;
 
-    void resize();
+    void resizeUp();
 
     bool rehash(Bucket* oldTable, int oldM);
     bool addWithoutResize(TKey k, TValue v);
@@ -65,7 +65,6 @@ public:
 	// destructor
 	~Map();
 
-    void printHashTableAndBitmap() const;
 
 };
 
